@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SigSer - Sistema de Gestión de Servicios</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+    
+</head>
+<body>
+    <!-- Login Section -->
+    <div id="login-section" class="login-container">
+        <div class="login-form">
+            <div class="logo-login">
+                <h1><i class="fas fa-tools"></i> SigSer</h1>
+                <p>Sistema de Gestión de Servicios</p>
+            </div>
+            <div id="login-error" class="error" style="display: none;"></div>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="email"><i class="fas fa-envelope"></i> Email</label>
+                    <input type="email" id="email" class="form-control" placeholder="tu@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="password"><i class="fas fa-lock"></i> Contraseña</label>
+                    <input type="password" id="password" class="form-control" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-block">
+                    <i class="fas fa-sign-in-alt"></i> Ingresar
+                </button>
+            </form>
+            <div style="margin-top: 25px; text-align: center;">
+                <p>¿No tienes cuenta? <a href="#" id="show-register" style="color: var(--primary-color); text-decoration: none; font-weight: 600;">Regístrate aquí</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Section -->
+    <div id="register-section" class="login-container" style="display: none;">
+        <div class="login-form">
+            <div class="logo-login">
+                <h1><i class="fas fa-user-plus"></i> Registro</h1>
+                <p>Crear nueva cuenta</p>
+            </div>
+            <div id="register-error" class="error" style="display: none;"></div>
+            <form id="register-form">
+                <div class="form-group">
+                    <label for="register-email"><i class="fas fa-envelope"></i> Email</label>
+                    <input type="email" id="register-email" class="form-control" placeholder="tu@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="register-password"><i class="fas fa-lock"></i> Contraseña</label>
+                    <input type="password" id="register-password" class="form-control" placeholder="••••••••" required>
+                </div>
+                <div class="form-group">
+                    <label for="register-name"><i class="fas fa-user"></i> Nombre Completo</label>
+                    <input type="text" id="register-name" class="form-control" placeholder="Tu nombre completo" required>
+                </div>
+                <button type="submit" class="btn btn-block">
+                    <i class="fas fa-user-plus"></i> Registrarse
+                </button>
+            </form>
+            <div style="margin-top: 25px; text-align: center;">
+                <p>¿Ya tienes cuenta? <a href="#" id="show-login" style="color: var(--primary-color); text-decoration: none; font-weight: 600;">Inicia sesión aquí</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="app-container" class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="container">
+                <nav class="navbar">
+                    <div class="logo">
+                        <i class="fas fa-tools"></i>
+                        <span>SigSer</span>
+                    </div>
+                    <ul class="nav-links">
+                        <li><a href="#" class="nav-link active" data-section="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                        <li><a href="#" class="nav-link" data-section="servicios"><i class="fas fa-cogs"></i> Servicios</a></li>
+                        <li><a href="#" class="nav-link" data-section="combustible"><i class="fas fa-gas-pump"></i> Combustible</a></li>
+                        <li><a href="#" class="nav-link" data-section="gastos-vehiculo"><i class="fas fa-car"></i> Gastos Vehículo</a></li>
+                        <li><a href="#" class="nav-link" data-section="otros"><i class="fas fa-receipt"></i> Otros Gastos</a></li>
+                        <li><a href="#" class="nav-link" data-section="estadisticas"><i class="fas fa-chart-bar"></i> Estadísticas</a></li>
+                        <!--robinson-->
+                        <div class="user-info">
+                            <div class="user-details">
+                                <div class="user-name" id="user-name">Cargando...</div>
+                                <!-- <div class="user-email" id="user-email">usuario@email.com</div>-->
+                            </div> 
+                            <!--<div class="user-avatar" id="user-avatar">U</div> -->
+                            <div class="logout-btn" id="logout-btn">
+                                <i class="fas fa-sign-out-alt"></i> Salir
+                            </div>
+                        </div>
+                    </ul>
+                    <button class="mobile-menu-btn" id="mobile-menu-btn">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Mobile Navigation -->
+        <div class="mobile-nav" id="mobile-nav">
+            <div class="mobile-nav-header">
+                <div class="mobile-nav-title">
+                    <i class="fas fa-tools"></i>
+                    <span>SigSer</span>
+                </div>
+                <button class="close-mobile-menu" id="close-mobile-menu">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <!--robinson-->
+            <!-- Información del usuario en móvil 
+            <div class="mobile-user-info">
+                <div class="mobile-user-avatar" id="mobile-user-avatar">U</div>
+                <div class="mobile-user-name" id="mobile-user-name">Cargando...</div>
+                <div class="mobile-user-email" id="mobile-user-email">usuario@email.com</div>
+            </div>-->
+
+            <ul class="mobile-nav-links">
+                <li><a href="#" class="nav-link active" data-section="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="#" class="nav-link" data-section="servicios"><i class="fas fa-cogs"></i> Servicios</a></li>
+                <li><a href="#" class="nav-link" data-section="combustible"><i class="fas fa-gas-pump"></i> Combustible</a></li>
+                <li><a href="#" class="nav-link" data-section="gastos-vehiculo"><i class="fas fa-car"></i> Gastos Vehículo</a></li>
+                <li><a href="#" class="nav-link" data-section="otros"><i class="fas fa-receipt"></i> Otros Gastos</a></li>
+                <li><a href="#" class="nav-link" data-section="estadisticas"><i class="fas fa-chart-bar"></i> Estadísticas</a></li>
+                <li>
+                    <div class="logout-btn btn-block" id="mobile-logout-btn" style="margin-top: 20px;">
+                        <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="container">
+                <!-- Dashboard Section -->
+                <section id="dashboard" class="section active">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </h2>
+                        <p>Resumen general de tu actividad</p>
+                    </div>
+
+                    <div class="dashboard">
+                        <div class="dashboard-card active" data-section="servicios">
+                            <div class="card-icon servicios-icon">
+                                <i class="fas fa-cogs"></i>
+                            </div>
+                            <div class="card-content">
+                                <h3>Servicios</h3>
+                                <p>Gestión de servicios técnicos</p>
+                                <div class="card-stats">
+                                    <div>
+                                        <div class="stat-number" id="dashboard-servicios">0</div>
+                                        <div class="stat-label">Total Servicios</div>
+                                    </div>
+                                    <div>
+                                        <div class="stat-number" id="dashboard-servicios-valor">$0</div>
+                                        <div class="stat-label">Valor Total</div>
+                                    </div>
+                                </div>
+                                <div class="card-hint">
+                                    <i class="fas fa-lightbulb"></i> Haz clic para ver detalles
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="dashboard-card" data-section="combustible">
+                            <div class="card-icon combustible-icon">
+                                <i class="fas fa-gas-pump"></i>
+                            </div>
+                            <div class="card-content">
+                                <h3>Combustible</h3>
+                                <p>Registro de gastos de combustible</p>
+                                <div class="card-stats">
+                                    <div>
+                                        <div class="stat-number" id="dashboard-combustible">0</div>
+                                        <div class="stat-label">Total Registros</div>
+                                    </div>
+                                    <div>
+                                        <div class="stat-number" id="dashboard-combustible-valor">$0</div>
+                                        <div class="stat-label">Valor Total</div>
+                                    </div>
+                                </div>
+                                <div class="card-hint">
+                                    <i class="fas fa-lightbulb"></i> Haz clic para ver detalles
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="dashboard-card" data-section="gastos-vehiculo">
+                            <div class="card-icon gastos-icon">
+                                <i class="fas fa-car"></i>
+                            </div>
+                            <div class="card-content">
+                                <h3>Gastos Vehículo</h3>
+                                <p>Otros gastos de vehículos</p>
+                                <div class="card-stats">
+                                    <div>
+                                        <div class="stat-number" id="dashboard-gastos">0</div>
+                                        <div class="stat-label">Total Gastos</div>
+                                    </div>
+                                    <div>
+                                        <div class="stat-number" id="dashboard-gastos-valor">$0</div>
+                                        <div class="stat-label">Valor Total</div>
+                                    </div>
+                                </div>
+                                <div class="card-hint">
+                                    <i class="fas fa-lightbulb"></i> Haz clic para ver detalles
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="dashboard-card" data-section="otros">
+                            <div class="card-icon otros-icon">
+                                <i class="fas fa-receipt"></i>
+                            </div>
+                            <div class="card-content">
+                                <h3>Otros Gastos</h3>
+                                <p>Gastos generales varios</p>
+                                <div class="card-stats">
+                                    <div>
+                                        <div class="stat-number" id="dashboard-otros">0</div>
+                                        <div class="stat-label">Total Gastos</div>
+                                    </div>
+                                    <div>
+                                        <div class="stat-number" id="dashboard-otros-valor">$0</div>
+                                        <div class="stat-label">Valor Total</div>
+                                    </div>
+                                </div>
+                                <div class="card-hint">
+                                    <i class="fas fa-lightbulb"></i> Haz clic para ver detalles
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gráficos del Dashboard -->
+                    <div class="stats-container">
+                        <div class="stats-card">
+                            <div class="stats-header">
+                                <h3 class="stats-title"><i class="fas fa-chart-pie"></i> Distribución de Gastos</h3>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="expenses-chart"></canvas>
+                            </div>
+                        </div>
+                        <div class="stats-card">
+                            <div class="stats-header">
+                                <h3 class="stats-title"><i class="fas fa-chart-line"></i> Gastos Mensuales</h3>
+                                <div class="time-filter">
+                                    <button class="time-filter-btn active" data-period="3">3M</button>
+                                    <button class="time-filter-btn" data-period="6">6M</button>
+                                    <button class="time-filter-btn" data-period="12">1A</button>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="monthly-expenses-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Servicios Section -->
+                <section id="servicios" class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-cogs"></i> Servicios
+                        </h2>
+                        <button class="btn btn-success" id="add-servicio">
+                            <i class="fas fa-plus"></i> Agregar Servicio
+                        </button>
+                    </div>
+
+                    <!-- Filter Section -->
+                    <div class="filter-container">
+                        <div class="filter-row">
+                            <div class="filter-col">
+                                <label for="filter-cuenta"><i class="fas fa-building"></i> Cuenta</label>
+                                <input type="text" id="filter-cuenta" class="form-control" placeholder="Filtrar por cuenta...">
+                            </div>
+                            <div class="filter-col">
+                                <label for="filter-orden"><i class="fas fa-file-alt"></i> Orden de Trabajo</label>
+                                <input type="text" id="filter-orden" class="form-control" placeholder="Filtrar por orden...">
+                            </div>
+                            <div class="filter-col">
+                                <label for="filter-fecha-inicio"><i class="fas fa-calendar"></i> Fecha Inicio</label>
+                                <input type="date" id="filter-fecha-inicio" class="form-control">
+                            </div>
+                            <div class="filter-col">
+                                <label for="filter-fecha-fin"><i class="fas fa-calendar"></i> Fecha Fin</label>
+                                <input type="date" id="filter-fecha-fin" class="form-control">
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 10px; margin-top: 15px;">
+                            <button class="btn" id="apply-filter-servicios">
+                                <i class="fas fa-filter"></i> Aplicar Filtros
+                            </button>
+                            <button class="btn btn-info" id="clear-filter-servicios">
+                                <i class="fas fa-eraser"></i> Limpiar Filtros
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Summary -->
+                    <div class="summary">
+                        <div class="summary-item">
+                            <div class="summary-value" id="total-servicios">0</div>
+                            <div class="summary-label">Total Servicios</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-value" id="total-valor-servicios">$0</div>
+                            <div class="summary-label">Valor Total</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-value" id="promedio-servicios">$0</div>
+                            <div class="summary-label">Valor Promedio</div>
+                        </div>
+                    </div>
+
+                    <!-- Table -->
+                    <div class="table-container">
+                        <div id="servicios-loading" class="loading">
+                            <i class="fas fa-spinner"></i><br>
+                            Cargando servicios...
+                        </div>
+                        <table id="servicios-table" style="display: none;">
+                            <thead>
+                                <tr>
+                                    <th>Cuenta</th>
+                                    <th>Orden Trabajo</th>
+                                    <th>Tipo Servicio</th>
+                                    <th>Cliente</th>
+                                    <th>Valor</th>
+                                    <th>Direccion</th>
+                                    <th>Detalles</th>
+                                    <th>Fecha</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Combustible Section -->
+                <section id="combustible" class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-gas-pump"></i> Combustible
+                        </h2>
+                        <button class="btn btn-success" id="add-combustible">
+                            <i class="fas fa-plus"></i> Agregar Combustible
+                        </button>
+                    </div>
+
+                    <!-- Filter Section -->
+                    <div class="filter-container">
+                        <div class="filter-row">
+                            <div class="filter-col">
+                                <label for="filter-placa-combustible"><i class="fas fa-car"></i> Placa Vehículo</label>
+                                <input type="text" id="filter-placa-combustible" class="form-control" placeholder="Filtrar por placa...">
+                            </div>
+                            <div class="filter-col">
+                                <label for="filter-estacion-combustible"><i class="fas fa-gas-pump"></i> Estación Servicio</label>
+                                <input type="text" id="filter-estacion-combustible" class="form-control" placeholder="Filtrar por estación...">
+                            </div>
+                            <div class="filter-col">
+                                <label for="filter-fecha-combustible"><i class="fas fa-calendar"></i> Fecha</label>
+                                <input type="date" id="filter-fecha-combustible" class="form-control">
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 10px; margin-top: 15px;">
+                            <button class="btn" id="apply-filter-combustible">
+                                <i class="fas fa-filter"></i> Aplicar Filtros
+                            </button>
+                            <button class="btn btn-info" id="clear-filter-combustible">
+                                <i class="fas fa-eraser"></i> Limpiar Filtros
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Summary -->
+                    <div class="summary">
+                        <div class="summary-item">
+                            <div class="summary-value" id="total-combustible">0</div>
+                            <div class="summary-label">Total Registros</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-value" id="total-valor-combustible">$0</div>
+                            <div class="summary-label">Valor Total</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-value" id="promedio-combustible">$0</div>
+                            <div class="summary-label">Valor Promedio</div>
+                        </div>
+                    </div>
+
+                    <!-- Table -->
+                    <div class="table-container">
+                        <div id="combustible-loading" class="loading">
+                            <i class="fas fa-spinner"></i><br>
+                            Cargando combustible...
+                        </div>
+                        <table id="combustible-table" style="display: none;">
+                            <thead>
+                                <tr>
+                                    <th>Placa Vehículo</th>
+                                    <th>Estación Servicio</th>
+                                    <th>Dirección</th>
+                                    <th>Valor</th>
+                                    <th>Fecha</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Gastos Vehículo Section -->
+                <section id="gastos-vehiculo" class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-car"></i> Gastos Vehículo
+                        </h2>
+                        <button class="btn btn-success" id="add-gasto-vehiculo">
+                            <i class="fas fa-plus"></i> Agregar Gasto
+                        </button>
+                    </div>
+
+                    <!-- Filter Section -->
+                    <div class="filter-container">
+                        <div class="filter-row">
+                            <div class="filter-col">
+                                <label for="filter-placa-gastos"><i class="fas fa-car"></i> Placa Vehículo</label>
+                                <input type="text" id="filter-placa-gastos" class="form-control" placeholder="Filtrar por placa...">
+                            </div>
+                            <div class="filter-col">
+                                <label for="filter-fecha-gastos"><i class="fas fa-calendar"></i> Fecha</label>
+                                <input type="date" id="filter-fecha-gastos" class="form-control">
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 10px; margin-top: 15px;">
+                            <button class="btn" id="apply-filter-gastos">
+                                <i class="fas fa-filter"></i> Aplicar Filtros
+                            </button>
+                            <button class="btn btn-info" id="clear-filter-gastos">
+                                <i class="fas fa-eraser"></i> Limpiar Filtros
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Summary -->
+                    <div class="summary">
+                        <div class="summary-item">
+                            <div class="summary-value" id="total-gastos">0</div>
+                            <div class="summary-label">Total Gastos</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-value" id="total-valor-gastos">$0</div>
+                            <div class="summary-label">Valor Total</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-value" id="promedio-gastos">$0</div>
+                            <div class="summary-label">Valor Promedio</div>
+                        </div>
+                    </div>
+
+                    <!-- Table -->
+                    <div class="table-container">
+                        <div id="gastos-loading" class="loading">
+                            <i class="fas fa-spinner"></i><br>
+                            Cargando gastos...
+                        </div>
+                        <table id="gastos-table" style="display: none;">
+                            <thead>
+                                <tr>
+                                    <th>Placa Vehículo</th>
+                                    <th>Dirección</th>
+                                    <th>Valor</th>
+                                    <th>Fecha</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Otros Section -->
+                <section id="otros" class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-receipt"></i> Otros Gastos
+                        </h2>
+                        <button class="btn btn-success" id="add-otro">
+                            <i class="fas fa-plus"></i> Agregar Gasto
+                        </button>
+                    </div>
+
+                    <!-- Filter Section -->
+                    <div class="filter-container">
+                        <div class="filter-row">
+                            <div class="filter-col">
+                                <label for="filter-nombre-otros"><i class="fas fa-tag"></i> Nombre Gasto</label>
+                                <input type="text" id="filter-nombre-otros" class="form-control" placeholder="Filtrar por nombre...">
+                            </div>
+                            <div class="filter-col">
+                                <label for="filter-fecha-otros"><i class="fas fa-calendar"></i> Fecha</label>
+                                <input type="date" id="filter-fecha-otros" class="form-control">
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 10px; margin-top: 15px;">
+                            <button class="btn" id="apply-filter-otros">
+                                <i class="fas fa-filter"></i> Aplicar Filtros
+                            </button>
+                            <button class="btn btn-info" id="clear-filter-otros">
+                                <i class="fas fa-eraser"></i> Limpiar Filtros
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Summary -->
+                    <div class="summary">
+                        <div class="summary-item">
+                            <div class="summary-value" id="total-otros">0</div>
+                            <div class="summary-label">Total Gastos</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-value" id="total-valor-otros">$0</div>
+                            <div class="summary-label">Valor Total</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-value" id="promedio-otros">$0</div>
+                            <div class="summary-label">Valor Promedio</div>
+                        </div>
+                    </div>
+
+                    <!-- Table -->
+                    <div class="table-container">
+                        <div id="otros-loading" class="loading">
+                            <i class="fas fa-spinner"></i><br>
+                            Cargando otros gastos...
+                        </div>
+                        <table id="otros-table" style="display: none;">
+                            <thead>
+                                <tr>
+                                    <th>Nombre Gasto</th>
+                                    <th>Dirección</th>
+                                    <th>Valor</th>
+                                    <th>Fecha</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Sección de Estadísticas -->
+                <section id="estadisticas" class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-chart-bar"></i> Estadísticas Detalladas
+                        </h2>
+                        <p>Análisis completo de tus datos</p>
+                    </div>
+
+                    <div class="stats-container">
+                        <div class="stats-card full-width">
+                            <div class="stats-header">
+                                <h3 class="stats-title"><i class="fas fa-chart-line"></i> Evolución de Gastos</h3>
+                                <div class="time-filter">
+                                    <button class="time-filter-btn active" data-period="3">3M</button>
+                                    <button class="time-filter-btn" data-period="6">6M</button>
+                                    <button class="time-filter-btn" data-period="12">1A</button>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="expense-evolution-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stats-container">
+                        <div class="stats-card">
+                            <div class="stats-header">
+                                <h3 class="stats-title"><i class="fas fa-gas-pump"></i> Top Vehículos - Combustible</h3>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="top-vehicles-chart"></canvas>
+                            </div>
+                        </div>
+                        <div class="stats-card">
+                            <div class="stats-header">
+                                <h3 class="stats-title"><i class="fas fa-cogs"></i> Tipos de Servicios</h3>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="service-types-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stats-container">
+                        <div class="stats-card full-width">
+                            <div class="stats-header">
+                                <h3 class="stats-title"><i class="fas fa-calendar-alt"></i> Actividad por Día de la Semana</h3>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="weekly-activity-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Estadísticas Resumen -->
+                    <div class="summary">
+                        <div class="summary-item">
+                            <div class="summary-value" id="total-gastos-mes">$0</div>
+                            <div class="summary-label">Gastos del Mes</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-value" id="promedio-gasto-mes">$0</div>
+                            <div class="summary-label">Promedio Mensual</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-value" id="total-servicios-mes">0</div>
+                            <div class="summary-label">Servicios del Mes</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-value" id="vehiculo-mas-usado">-</div>
+                            <div class="summary-label">Vehículo Más Usado</div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <!-- Servicios Modal -->
+    <div id="servicio-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="servicio-modal-title">
+                    <i class="fas fa-cogs"></i> Agregar Servicio
+                </h3>
+                <button class="close-btn" id="close-servicio-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="servicio-form">
+                <div class="form-row">
+                    <div class="form-col">
+                        <label for="cuenta"><i class="fas fa-building"></i> Cuenta</label>
+                        <input type="text" id="cuenta" class="form-control" required>
+                    </div>
+                    <div class="form-col">
+                        <label for="orden-trabajo"><i class="fas fa-file-alt"></i> Orden de Trabajo</label>
+                        <input type="text" id="orden-trabajo" class="form-control" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-col">
+                        <label for="tipo-servicio"><i class="fas fa-tools"></i> Tipo de Servicio</label>
+                        <select id="tipo-servicio" class="form-control" required>
+                            <option value="">Seleccionar</option>
+                            <option value="Instalación">Instalación</option>
+                            <option value="Mantenimiento">Mantenimiento</option>
+                            <option value="Postventa">Postventa</option>
+                            <option value="Traslado">Traslado</option>
+                        </select>
+                    </div>
+                    <div class="form-col">
+                        <label for="nombre-cliente"><i class="fas fa-user"></i> Nombre Cliente</label>
+                        <input type="text" id="nombre-cliente" class="form-control" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-col">
+                        <label for="valor-servicio"><i class="fas fa-dollar-sign"></i> Valor</label>
+                        <input type="number" id="valor-servicio" class="form-control" required>
+                    </div>
+                    <div class="form-col">
+                        <label for="fecha-servicio"><i class="fas fa-calendar"></i> Fecha</label>
+                        <input type="date" id="fecha-servicio" class="form-control" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-col">
+                        <label for="hora-servicio"><i class="fas fa-clock"></i> Hora</label>
+                        <input type="time" id="hora-servicio" class="form-control" required>
+                    </div>
+                    <div class="form-col">
+                        <label for="direccion-servicio"><i class="fas fa-map-marker-alt"></i> Dirección</label>
+                        <input type="text" id="direccion-servicio" class="form-control" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-col-full">
+                        <label for="detalles-servicio"><i class="fas fa-sticky-note"></i> Detalles</label>
+                        <textarea id="detalles-servicio" class="form-control" rows="4" placeholder="Detalles adicionales del servicio..."></textarea>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-col-full">
+                        <button type="submit" class="btn btn-success btn-block">
+                            <i class="fas fa-save"></i> Guardar Servicio
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Combustible Modal -->
+    <div id="combustible-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="combustible-modal-title">
+                    <i class="fas fa-gas-pump"></i> Agregar Combustible
+                </h3>
+                <button class="close-btn" id="close-combustible-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="combustible-form">
+                <div class="form-row">
+                    <div class="form-col">
+                        <label for="placa-combustible"><i class="fas fa-car"></i> Placa Vehículo</label>
+                        <input type="text" id="placa-combustible" class="form-control" required>
+                    </div>
+                    <div class="form-col">
+                        <label for="estacion-servicio"><i class="fas fa-gas-pump"></i> Estación de Servicio</label>
+                        <input type="text" id="estacion-servicio" class="form-control" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-col">
+                        <label for="direccion-combustible"><i class="fas fa-map-marker-alt"></i> Dirección</label>
+                        <input type="text" id="direccion-combustible" class="form-control" required>
+                    </div>
+                    <div class="form-col">
+                        <label for="valor-combustible"><i class="fas fa-dollar-sign"></i> Valor</label>
+                        <input type="number" id="valor-combustible" class="form-control" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-col">
+                        <label for="fecha-combustible"><i class="fas fa-calendar"></i> Fecha</label>
+                        <input type="date" id="fecha-combustible" class="form-control" required>
+                    </div>
+                    <div class="form-col">
+                        <label for="hora-combustible"><i class="fas fa-clock"></i> Hora</label>
+                        <input type="time" id="hora-combustible" class="form-control" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-col-full">
+                        <button type="submit" class="btn btn-success btn-block">
+                            <i class="fas fa-save"></i> Guardar Combustible
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Gastos Vehículo Modal -->
+    <div id="gasto-vehiculo-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="gasto-vehiculo-modal-title">
+                    <i class="fas fa-car"></i> Agregar Gasto Vehículo
+                </h3>
+                <button class="close-btn" id="close-gasto-vehiculo-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="gasto-vehiculo-form">
+                <div class="form-row">
+                    <div class="form-col">
+                        <label for="placa-gasto"><i class="fas fa-car"></i> Placa Vehículo</label>
+                        <input type="text" id="placa-gasto" class="form-control" required>
+                    </div>
+                    <div class="form-col">
+                        <label for="direccion-gasto"><i class="fas fa-map-marker-alt"></i> Dirección</label>
+                        <input type="text" id="direccion-gasto" class="form-control" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-col">
+                        <label for="valor-gasto"><i class="fas fa-dollar-sign"></i> Valor</label>
+                        <input type="number" id="valor-gasto" class="form-control" required>
+                    </div>
+                    <div class="form-col">
+                        <label for="fecha-gasto"><i class="fas fa-calendar"></i> Fecha</label>
+                        <input type="date" id="fecha-gasto" class="form-control" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-col">
+                        <label for="hora-gasto"><i class="fas fa-clock"></i> Hora</label>
+                        <input type="time" id="hora-gasto" class="form-control" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-col-full">
+                        <label for="detalles-gasto"><i class="fas fa-sticky-note"></i> Detalles</label>
+                        <textarea id="detalles-gasto" class="form-control" rows="4" placeholder="Detalles del gasto..."></textarea>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-col-full">
+                        <button type="submit" class="btn btn-success btn-block">
+                            <i class="fas fa-save"></i> Guardar Gasto
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Otros Gastos Modal -->
+    <div id="otro-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="otro-modal-title">
+                    <i class="fas fa-receipt"></i> Agregar Otro Gasto
+                </h3>
+                <button class="close-btn" id="close-otro-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="otro-form">
+                <div class="form-row">
+                    <div class="form-col">
+                        <label for="nombre-gasto"><i class="fas fa-tag"></i> Nombre del Gasto</label>
+                        <input type="text" id="nombre-gasto" class="form-control" required>
+                    </div>
+                    <div class="form-col">
+                        <label for="direccion-otro"><i class="fas fa-map-marker-alt"></i> Dirección</label>
+                        <input type="text" id="direccion-otro" class="form-control" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-col">
+                        <label for="valor-otro"><i class="fas fa-dollar-sign"></i> Valor</label>
+                        <input type="number" id="valor-otro" class="form-control" required>
+                    </div>
+                    <div class="form-col">
+                        <label for="fecha-otro"><i class="fas fa-calendar"></i> Fecha</label>
+                        <input type="date" id="fecha-otro" class="form-control" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-col">
+                        <label for="hora-otro"><i class="fas fa-clock"></i> Hora</label>
+                        <input type="time" id="hora-otro" class="form-control" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-col-full">
+                        <button type="submit" class="btn btn-success btn-block">
+                            <i class="fas fa-save"></i> Guardar Gasto
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Floating Action Button -->
+    <div class="fab" id="fab" style="display: none;">
+        <i class="fas fa-plus"></i>
+    </div>
+
+    <script src="js/script.js"></script>
+
+</body>
+</html>
