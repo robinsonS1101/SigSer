@@ -1,4 +1,4 @@
-// js/script.js
+
         // Configuración de Supabase
         const SUPABASE_URL = 'https://vkyrvcqzueafykfcycnw.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZreXJ2Y3F6dWVhZnlrZmN5Y253Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTczNjU1MTYsImV4cCI6MjA3Mjk0MTUxNn0.fe36007a-7NmObG9Ias-m6gmU8psY8-2vNAePjs702w';
@@ -21,6 +21,14 @@
         let currentUser = null;
         let editingId = null;
         let charts = {};
+        
+        // Nuevas variables para mejoras
+        let pagination = {
+            servicios: { page: 1, limit: 10, total: 0 },
+            combustible: { page: 1, limit: 10, total: 0 },
+            gastos: { page: 1, limit: 10, total: 0 },
+            otros: { page: 1, limit: 10, total: 0 }
+        };
 
         // Elementos DOM
         const loginSection = document.getElementById('login-section');
@@ -46,6 +54,15 @@
         const showRegister = document.getElementById('show-register');
         const showLogin = document.getElementById('show-login');
         const fab = document.getElementById('fab');
+
+        // Nuevos elementos DOM para mejoras
+        const toastContainer = document.getElementById('toast-container');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const confirmationModal = document.getElementById('confirmation-modal');
+        const confirmationTitle = document.getElementById('confirmation-title');
+        const confirmationMessage = document.getElementById('confirmation-message');
+        const confirmationCancel = document.getElementById('confirmation-cancel');
+        const confirmationConfirm = document.getElementById('confirmation-confirm');
 
         // Inicializar la aplicación
         document.addEventListener('DOMContentLoaded', function() {
@@ -156,7 +173,167 @@
 
             // Floating Action Button
             fab.addEventListener('click', handleFabClick);
+            
+            // ========== CORRECCIÓN DEL MODAL DE CONFIRMACIÓN ==========
+            // Solo configuramos el botón de cancelar aquí
+            confirmationCancel.addEventListener('click', hideConfirmation);
+            // El botón de confirmar se configura dinámicamente en showConfirmation
+            
+            // Validación en tiempo real para formularios
+            setupFormValidation();
         }
+
+        // ========== NUEVAS FUNCIONALIDADES ==========
+
+        // Mostrar toast de notificación
+        function showToast(message, type = 'success', duration = 3000) {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            toastContainer.appendChild(toast);
+            
+            // Mostrar toast
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 100);
+            
+            // Ocultar y eliminar después de la duración
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    toastContainer.removeChild(toast);
+                }, 300);
+            }, duration);
+        }
+
+        // Mostrar overlay de carga
+        function showLoading() {
+            loadingOverlay.classList.add('show');
+        }
+
+        // Ocultar overlay de carga
+        function hideLoading() {
+            loadingOverlay.classList.remove('show');
+        }
+
+        // ========== CORRECCIÓN COMPLETA DEL MODAL DE CONFIRMACIÓN ==========
+        // Mostrar modal de confirmación
+        function showConfirmation(title, message, callback) {
+            confirmationTitle.textContent = title;
+            confirmationMessage.textContent = message;
+            confirmationModal.classList.add('show');
+            
+            // Configurar el botón de confirmar directamente
+            confirmationConfirm.onclick = function() {
+                if (callback && typeof callback === 'function') {
+                    callback();
+                }
+                hideConfirmation();
+            };
+        }
+
+        // Ocultar modal de confirmación
+        function hideConfirmation() {
+            confirmationModal.classList.remove('show');
+        }
+
+        // Configurar validación de formularios
+        function setupFormValidation() {
+            // Validación para formulario de servicios
+            const servicioForm = document.getElementById('servicio-form');
+            if (servicioForm) {
+                servicioForm.addEventListener('input', function(e) {
+                    validateField(e.target);
+                });
+            }
+            
+            // Validación para formulario de combustible
+            const combustibleForm = document.getElementById('combustible-form');
+            if (combustibleForm) {
+                combustibleForm.addEventListener('input', function(e) {
+                    validateField(e.target);
+                });
+            }
+            
+            // Validación para formulario de gastos vehículo
+            const gastoVehiculoForm = document.getElementById('gasto-vehiculo-form');
+            if (gastoVehiculoForm) {
+                gastoVehiculoForm.addEventListener('input', function(e) {
+                    validateField(e.target);
+                });
+            }
+            
+            // Validación para formulario de otros gastos
+            const otroForm = document.getElementById('otro-form');
+            if (otroForm) {
+                otroForm.addEventListener('input', function(e) {
+                    validateField(e.target);
+                });
+            }
+        }
+
+        // Validar campo individual
+        function validateField(field) {
+            const value = field.value.trim();
+            const fieldName = field.getAttribute('name') || field.id;
+            
+            // Limpiar errores previos
+            field.classList.remove('error');
+            const existingError = field.parentNode.querySelector('.error-message');
+            if (existingError) {
+                existingError.remove();
+            }
+            
+            // Validaciones específicas por tipo de campo
+            if (field.type === 'number' && value !== '') {
+                const numValue = parseFloat(value);
+                if (isNaN(numValue) || numValue < 0) {
+                    showFieldError(field, 'El valor debe ser un número positivo');
+                    return false;
+                }
+            }
+            
+            if (field.required && value === '') {
+                showFieldError(field, 'Este campo es obligatorio');
+                return false;
+            }
+            
+            if (field.type === 'email' && value !== '') {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(value)) {
+                    showFieldError(field, 'Ingresa un email válido');
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+
+        // Mostrar error en campo
+        function showFieldError(field, message) {
+            field.classList.add('error');
+            const errorElement = document.createElement('div');
+            errorElement.className = 'error-message';
+            errorElement.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+            field.parentNode.appendChild(errorElement);
+        }
+
+        // Validar formulario completo
+        function validateForm(formId) {
+            const form = document.getElementById(formId);
+            const fields = form.querySelectorAll('input, select, textarea');
+            let isValid = true;
+            
+            fields.forEach(field => {
+                if (!validateField(field)) {
+                    isValid = false;
+                }
+            });
+            
+            return isValid;
+        }
+
+        // ========== FUNCIONES EXISTENTES MODIFICADAS ==========
 
         // Verificar autenticación
         async function checkAuth() {
@@ -233,6 +410,7 @@
             const errorDiv = document.getElementById('login-error');
 
             try {
+                showLoading();
                 const { data, error } = await supabase.auth.signInWithPassword({
                     email,
                     password
@@ -243,9 +421,13 @@
                 currentUser = data.user;
                 await ensureUserProfile();
                 showApp();
+                showToast('Sesión iniciada correctamente', 'success');
             } catch (error) {
                 errorDiv.textContent = 'Error: ' + error.message;
                 errorDiv.style.display = 'block';
+                showToast('Error al iniciar sesión: ' + error.message, 'error');
+            } finally {
+                hideLoading();
             }
         }
 
@@ -258,6 +440,7 @@
             const errorDiv = document.getElementById('register-error');
 
             try {
+                showLoading();
                 const { data, error } = await supabase.auth.signUp({
                     email,
                     password,
@@ -270,24 +453,32 @@
 
                 if (error) throw error;
 
-                alert('✅ Registro exitoso. Revisa tu email para confirmar tu cuenta y luego inicia sesión.');
+                showToast('Registro exitoso. Revisa tu email para confirmar tu cuenta.', 'success');
                 showLoginSection();
             } catch (error) {
                 errorDiv.textContent = 'Error: ' + error.message;
                 errorDiv.style.display = 'block';
+                showToast('Error en el registro: ' + error.message, 'error');
+            } finally {
+                hideLoading();
             }
         }
 
         // Manejar logout
         async function handleLogout() {
             try {
+                showLoading();
                 const { error } = await supabase.auth.signOut();
                 if (error) throw error;
                 
                 currentUser = null;
                 showLoginSection();
+                showToast('Sesión cerrada correctamente', 'success');
             } catch (error) {
                 console.error('Error logging out:', error);
+                showToast('Error al cerrar sesión: ' + error.message, 'error');
+            } finally {
+                hideLoading();
             }
         }
 
@@ -1020,24 +1211,43 @@
         }
 
         // ========== SERVICIOS ==========
-        async function loadServicios() {
+        async function loadServicios(page = 1, limit = 10) {
             const loading = document.getElementById('servicios-loading');
             const table = document.getElementById('servicios-table');
+            const cardsContainer = document.getElementById('servicios-cards');
             
             loading.style.display = 'block';
             table.style.display = 'none';
+            cardsContainer.innerHTML = '';
 
             try {
+                // Calcular offset para paginación
+                const offset = (page - 1) * limit;
+                
+                // Obtener total de registros
+                const { count, error: countError } = await supabase
+                    .from('servicios')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('user_id', currentUser.id);
+                
+                if (countError) throw countError;
+                
+                pagination.servicios.total = count;
+                pagination.servicios.page = page;
+                
+                // Obtener datos paginados
                 const { data, error } = await supabase
                     .from('servicios')
                     .select('*')
                     .eq('user_id', currentUser.id)
-                    .order('fecha', { ascending: false });
+                    .order('fecha', { ascending: false })
+                    .range(offset, offset + limit - 1);
 
                 if (error) throw error;
 
                 displayServicios(data);
                 updateServiciosSummary(data);
+                updatePagination('servicios');
                 return data;
             } catch (error) {
                 console.error('Error loading servicios:', error);
@@ -1051,13 +1261,16 @@
 
         function displayServicios(servicios) {
             const tbody = document.querySelector('#servicios-table tbody');
+            const cardsContainer = document.getElementById('servicios-cards');
             tbody.innerHTML = '';
+            cardsContainer.innerHTML = '';
 
             if (servicios.length === 0) {
                 showEmptyState('servicios-table', 'No hay servicios registrados', 'fas fa-cogs');
                 return;
             }
 
+            // Mostrar tabla en desktop
             servicios.forEach(servicio => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -1081,18 +1294,54 @@
                 tbody.appendChild(row);
             });
 
-            // Agregar event listeners a los botones
-            document.querySelectorAll('.btn-edit-servicio').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    editServicio(this.getAttribute('data-id'));
-                });
+            // Mostrar tarjetas en móviles
+            servicios.forEach(servicio => {
+                const card = document.createElement('div');
+                card.className = 'table-card';
+                card.innerHTML = `
+                    <div class="table-card-header">
+                        <div class="table-card-title">${servicio.cuenta || 'Sin cuenta'} - ${servicio.orden_trabajo || 'Sin orden'}</div>
+                        <div class="table-card-actions">
+                            <button class="btn btn-warning btn-sm btn-edit-servicio" data-id="${servicio.id}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-danger btn-sm btn-delete-servicio" data-id="${servicio.id}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-card-body">
+                        <div class="table-card-item">
+                            <div class="table-card-label">Tipo Servicio</div>
+                            <div class="table-card-value"><span class="badge">${servicio.tipo_servicio || ''}</span></div>
+                        </div>
+                        <div class="table-card-item">
+                            <div class="table-card-label">Cliente</div>
+                            <div class="table-card-value">${servicio.nombre_cliente || ''}</div>
+                        </div>
+                        <div class="table-card-item">
+                            <div class="table-card-label">Valor</div>
+                            <div class="table-card-value"><strong>$${servicio.valor?.toLocaleString() || '0'}</strong></div>
+                        </div>
+                        <div class="table-card-item">
+                            <div class="table-card-label">Dirección</div>
+                            <div class="table-card-value">${servicio.direccion || ''}</div>
+                        </div>
+                        <div class="table-card-item">
+                            <div class="table-card-label">Detalles</div>
+                            <div class="table-card-value">${servicio.detalles || ''}</div>
+                        </div>
+                        <div class="table-card-item">
+                            <div class="table-card-label">Fecha</div>
+                            <div class="table-card-value">${formatDate(servicio.fecha)} ${servicio.hora || ''}</div>
+                        </div>
+                    </div>
+                `;
+                cardsContainer.appendChild(card);
             });
 
-            document.querySelectorAll('.btn-delete-servicio').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    deleteServicio(this.getAttribute('data-id'));
-                });
-            });
+            // Agregar event listeners a los botones
+            setupDeleteButtons();
         }
 
         function updateServiciosSummary(servicios) {
@@ -1105,8 +1354,47 @@
             document.getElementById('promedio-servicios').textContent = `$${promedio.toLocaleString(undefined, {maximumFractionDigits: 0})}`;
         }
 
+        // Actualizar paginación
+        function updatePagination(type) {
+            const paginationInfo = pagination[type];
+            const totalPages = Math.ceil(paginationInfo.total / paginationInfo.limit);
+            
+            // Crear o actualizar controles de paginación
+            let paginationContainer = document.getElementById(`${type}-pagination`);
+            if (!paginationContainer) {
+                paginationContainer = document.createElement('div');
+                paginationContainer.id = `${type}-pagination`;
+                paginationContainer.className = 'pagination';
+                
+                const tableContainer = document.querySelector(`#${type} .table-container`);
+                if (tableContainer) {
+                    tableContainer.parentNode.insertBefore(paginationContainer, tableContainer.nextSibling);
+                }
+            }
+            
+            paginationContainer.innerHTML = `
+                <button class="pagination-btn" ${paginationInfo.page <= 1 ? 'disabled' : ''} 
+                    onclick="loadServicios(${paginationInfo.page - 1})">
+                    <i class="fas fa-chevron-left"></i> Anterior
+                </button>
+                <span class="pagination-info">
+                    Página ${paginationInfo.page} de ${totalPages} (${paginationInfo.total} registros)
+                </span>
+                <button class="pagination-btn" ${paginationInfo.page >= totalPages ? 'disabled' : ''} 
+                    onclick="loadServicios(${paginationInfo.page + 1})">
+                    Siguiente <i class="fas fa-chevron-right"></i>
+                </button>
+            `;
+        }
+
         async function handleServicioSubmit(e) {
             e.preventDefault();
+            
+            // Validar formulario
+            if (!validateForm('servicio-form')) {
+                showToast('Por favor, corrige los errores en el formulario', 'error');
+                return;
+            }
             
             const servicioData = {
                 cuenta: document.getElementById('cuenta').value,
@@ -1122,6 +1410,8 @@
             };
 
             try {
+                showLoading();
+                
                 // Verificar nuevamente que el perfil existe antes de guardar
                 await ensureUserProfile();
 
@@ -1131,11 +1421,13 @@
                         .update(servicioData)
                         .eq('id', editingId);
                     if (error) throw error;
+                    showToast('Servicio actualizado correctamente', 'success');
                 } else {
                     const { error } = await supabase
                         .from('servicios')
                         .insert([servicioData]);
                     if (error) throw error;
+                    showToast('Servicio creado correctamente', 'success');
                 }
 
                 closeModal('servicio');
@@ -1144,10 +1436,12 @@
             } catch (error) {
                 console.error('Error saving servicio:', error);
                 if (error.message.includes('foreign key constraint')) {
-                    alert('❌ Error: El perfil de usuario no existe. Por favor, contacta al administrador o verifica que las tablas estén creadas correctamente.');
+                    showToast('Error: El perfil de usuario no existe. Contacta al administrador.', 'error');
                 } else {
-                    alert('❌ Error al guardar el servicio: ' + error.message);
+                    showToast('Error al guardar el servicio: ' + error.message, 'error');
                 }
+            } finally {
+                hideLoading();
             }
         }
 
@@ -1176,26 +1470,36 @@
                 document.getElementById('servicio-modal').classList.add('active');
             } catch (error) {
                 console.error('Error loading servicio:', error);
-                alert('❌ Error cargando el servicio: ' + error.message);
+                showToast('Error cargando el servicio: ' + error.message, 'error');
             }
         }
 
+        // ========== CORRECCIÓN PARA ELIMINACIÓN DE SERVICIOS ==========
         async function deleteServicio(id) {
-            if (!confirm('¿Estás seguro de que quieres eliminar este servicio?')) return;
+            showConfirmation(
+                'Eliminar Servicio',
+                '¿Estás seguro de que quieres eliminar este servicio? Esta acción no se puede deshacer.',
+                async () => {
+                    try {
+                        showLoading();
+                        const { error } = await supabase
+                            .from('servicios')
+                            .delete()
+                            .eq('id', id);
 
-            try {
-                const { error } = await supabase
-                    .from('servicios')
-                    .delete()
-                    .eq('id', id);
-
-                if (error) throw error;
-                const servicios = await loadServicios();
-                updateDashboardStats(servicios, await loadCombustible(), await loadGastosVehiculo(), await loadOtros());
-            } catch (error) {
-                console.error('Error deleting servicio:', error);
-                alert('❌ Error al eliminar el servicio: ' + error.message);
-            }
+                        if (error) throw error;
+                        
+                        showToast('Servicio eliminado correctamente', 'success');
+                        const servicios = await loadServicios();
+                        updateDashboardStats(servicios, await loadCombustible(), await loadGastosVehiculo(), await loadOtros());
+                    } catch (error) {
+                        console.error('Error deleting servicio:', error);
+                        showToast('Error al eliminar el servicio: ' + error.message, 'error');
+                    } finally {
+                        hideLoading();
+                    }
+                }
+            );
         }
 
         async function applyServiciosFilter() {
@@ -1223,6 +1527,7 @@
                 updateServiciosSummary(data);
             } catch (error) {
                 console.error('Error filtering servicios:', error);
+                showToast('Error aplicando filtros: ' + error.message, 'error');
             }
         }
 
@@ -1235,24 +1540,43 @@
         }
 
         // ========== COMBUSTIBLE ==========
-        async function loadCombustible() {
+        async function loadCombustible(page = 1, limit = 10) {
             const loading = document.getElementById('combustible-loading');
             const table = document.getElementById('combustible-table');
+            const cardsContainer = document.getElementById('combustible-cards');
             
             loading.style.display = 'block';
             table.style.display = 'none';
+            cardsContainer.innerHTML = '';
 
             try {
+                // Calcular offset para paginación
+                const offset = (page - 1) * limit;
+                
+                // Obtener total de registros
+                const { count, error: countError } = await supabase
+                    .from('combustible')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('user_id', currentUser.id);
+                
+                if (countError) throw countError;
+                
+                pagination.combustible.total = count;
+                pagination.combustible.page = page;
+                
+                // Obtener datos paginados
                 const { data, error } = await supabase
                     .from('combustible')
                     .select('*')
                     .eq('user_id', currentUser.id)
-                    .order('fecha', { ascending: false });
+                    .order('fecha', { ascending: false })
+                    .range(offset, offset + limit - 1);
 
                 if (error) throw error;
 
                 displayCombustible(data);
                 updateCombustibleSummary(data);
+                updatePagination('combustible');
                 return data;
             } catch (error) {
                 console.error('Error loading combustible:', error);
@@ -1266,13 +1590,16 @@
 
         function displayCombustible(combustible) {
             const tbody = document.querySelector('#combustible-table tbody');
+            const cardsContainer = document.getElementById('combustible-cards');
             tbody.innerHTML = '';
+            cardsContainer.innerHTML = '';
 
             if (combustible.length === 0) {
                 showEmptyState('combustible-table', 'No hay registros de combustible', 'fas fa-gas-pump');
                 return;
             }
 
+            // Mostrar tabla en desktop
             combustible.forEach(item => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -1293,17 +1620,45 @@
                 tbody.appendChild(row);
             });
 
-            document.querySelectorAll('.btn-edit-combustible').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    editCombustible(this.getAttribute('data-id'));
-                });
+            // Mostrar tarjetas en móviles
+            combustible.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'table-card';
+                card.innerHTML = `
+                    <div class="table-card-header">
+                        <div class="table-card-title">${item.placa_vehiculo || 'Sin placa'}</div>
+                        <div class="table-card-actions">
+                            <button class="btn btn-warning btn-sm btn-edit-combustible" data-id="${item.id}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-danger btn-sm btn-delete-combustible" data-id="${item.id}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-card-body">
+                        <div class="table-card-item">
+                            <div class="table-card-label">Estación Servicio</div>
+                            <div class="table-card-value">${item.estacion_servicio || ''}</div>
+                        </div>
+                        <div class="table-card-item">
+                            <div class="table-card-label">Dirección</div>
+                            <div class="table-card-value">${item.direccion || ''}</div>
+                        </div>
+                        <div class="table-card-item">
+                            <div class="table-card-label">Valor</div>
+                            <div class="table-card-value"><strong>$${item.valor?.toLocaleString() || '0'}</strong></div>
+                        </div>
+                        <div class="table-card-item">
+                            <div class="table-card-label">Fecha</div>
+                            <div class="table-card-value">${formatDate(item.fecha)} ${item.hora || ''}</div>
+                        </div>
+                    </div>
+                `;
+                cardsContainer.appendChild(card);
             });
 
-            document.querySelectorAll('.btn-delete-combustible').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    deleteCombustible(this.getAttribute('data-id'));
-                });
-            });
+            setupDeleteButtons();
         }
 
         function updateCombustibleSummary(combustible) {
@@ -1319,6 +1674,12 @@
         async function handleCombustibleSubmit(e) {
             e.preventDefault();
             
+            // Validar formulario
+            if (!validateForm('combustible-form')) {
+                showToast('Por favor, corrige los errores en el formulario', 'error');
+                return;
+            }
+            
             const combustibleData = {
                 placa_vehiculo: document.getElementById('placa-combustible').value,
                 estacion_servicio: document.getElementById('estacion-servicio').value,
@@ -1330,6 +1691,8 @@
             };
 
             try {
+                showLoading();
+                
                 // Verificar nuevamente que el perfil existe antes de guardar
                 await ensureUserProfile();
 
@@ -1339,11 +1702,13 @@
                         .update(combustibleData)
                         .eq('id', editingId);
                     if (error) throw error;
+                    showToast('Registro de combustible actualizado correctamente', 'success');
                 } else {
                     const { error } = await supabase
                         .from('combustible')
                         .insert([combustibleData]);
                     if (error) throw error;
+                    showToast('Registro de combustible creado correctamente', 'success');
                 }
 
                 closeModal('combustible');
@@ -1352,10 +1717,12 @@
             } catch (error) {
                 console.error('Error saving combustible:', error);
                 if (error.message.includes('foreign key constraint')) {
-                    alert('❌ Error: El perfil de usuario no existe. Por favor, contacta al administrador o verifica que las tablas estén creadas correctamente.');
+                    showToast('Error: El perfil de usuario no existe. Contacta al administrador.', 'error');
                 } else {
-                    alert('❌ Error al guardar el registro de combustible: ' + error.message);
+                    showToast('Error al guardar el registro de combustible: ' + error.message, 'error');
                 }
+            } finally {
+                hideLoading();
             }
         }
 
@@ -1381,26 +1748,36 @@
                 document.getElementById('combustible-modal').classList.add('active');
             } catch (error) {
                 console.error('Error loading combustible:', error);
-                alert('❌ Error cargando el combustible: ' + error.message);
+                showToast('Error cargando el combustible: ' + error.message, 'error');
             }
         }
 
+        // ========== CORRECCIÓN PARA ELIMINACIÓN DE COMBUSTIBLE ==========
         async function deleteCombustible(id) {
-            if (!confirm('¿Estás seguro de que quieres eliminar este registro de combustible?')) return;
+            showConfirmation(
+                'Eliminar Registro de Combustible',
+                '¿Estás seguro de que quieres eliminar este registro de combustible? Esta acción no se puede deshacer.',
+                async () => {
+                    try {
+                        showLoading();
+                        const { error } = await supabase
+                            .from('combustible')
+                            .delete()
+                            .eq('id', id);
 
-            try {
-                const { error } = await supabase
-                    .from('combustible')
-                    .delete()
-                    .eq('id', id);
-
-                if (error) throw error;
-                const combustible = await loadCombustible();
-                updateDashboardStats(await loadServicios(), combustible, await loadGastosVehiculo(), await loadOtros());
-            } catch (error) {
-                console.error('Error deleting combustible:', error);
-                alert('❌ Error al eliminar el registro de combustible: ' + error.message);
-            }
+                        if (error) throw error;
+                        
+                        showToast('Registro de combustible eliminado correctamente', 'success');
+                        const combustible = await loadCombustible();
+                        updateDashboardStats(await loadServicios(), combustible, await loadGastosVehiculo(), await loadOtros());
+                    } catch (error) {
+                        console.error('Error deleting combustible:', error);
+                        showToast('Error al eliminar el registro de combustible: ' + error.message, 'error');
+                    } finally {
+                        hideLoading();
+                    }
+                }
+            );
         }
 
         async function applyCombustibleFilter() {
@@ -1426,6 +1803,7 @@
                 updateCombustibleSummary(data);
             } catch (error) {
                 console.error('Error filtering combustible:', error);
+                showToast('Error aplicando filtros: ' + error.message, 'error');
             }
         }
 
@@ -1437,24 +1815,43 @@
         }
 
         // ========== GASTOS VEHÍCULO ==========
-        async function loadGastosVehiculo() {
+        async function loadGastosVehiculo(page = 1, limit = 10) {
             const loading = document.getElementById('gastos-loading');
             const table = document.getElementById('gastos-table');
+            const cardsContainer = document.getElementById('gastos-cards');
             
             loading.style.display = 'block';
             table.style.display = 'none';
+            cardsContainer.innerHTML = '';
 
             try {
+                // Calcular offset para paginación
+                const offset = (page - 1) * limit;
+                
+                // Obtener total de registros
+                const { count, error: countError } = await supabase
+                    .from('gastos_vehiculo')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('user_id', currentUser.id);
+                
+                if (countError) throw countError;
+                
+                pagination.gastos.total = count;
+                pagination.gastos.page = page;
+                
+                // Obtener datos paginados
                 const { data, error } = await supabase
                     .from('gastos_vehiculo')
                     .select('*')
                     .eq('user_id', currentUser.id)
-                    .order('fecha', { ascending: false });
+                    .order('fecha', { ascending: false })
+                    .range(offset, offset + limit - 1);
 
                 if (error) throw error;
 
                 displayGastosVehiculo(data);
                 updateGastosVehiculoSummary(data);
+                updatePagination('gastos');
                 return data;
             } catch (error) {
                 console.error('Error loading gastos vehiculo:', error);
@@ -1468,13 +1865,16 @@
 
         function displayGastosVehiculo(gastos) {
             const tbody = document.querySelector('#gastos-table tbody');
+            const cardsContainer = document.getElementById('gastos-cards');
             tbody.innerHTML = '';
+            cardsContainer.innerHTML = '';
 
             if (gastos.length === 0) {
                 showEmptyState('gastos-table', 'No hay gastos de vehículo registrados', 'fas fa-car');
                 return;
             }
 
+            // Mostrar tabla en desktop
             gastos.forEach(gasto => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -1494,17 +1894,45 @@
                 tbody.appendChild(row);
             });
 
-            document.querySelectorAll('.btn-edit-gasto').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    editGastoVehiculo(this.getAttribute('data-id'));
-                });
+            // Mostrar tarjetas en móviles
+            gastos.forEach(gasto => {
+                const card = document.createElement('div');
+                card.className = 'table-card';
+                card.innerHTML = `
+                    <div class="table-card-header">
+                        <div class="table-card-title">${gasto.placa_vehiculo || 'Sin placa'}</div>
+                        <div class="table-card-actions">
+                            <button class="btn btn-warning btn-sm btn-edit-gasto" data-id="${gasto.id}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-danger btn-sm btn-delete-gasto" data-id="${gasto.id}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-card-body">
+                        <div class="table-card-item">
+                            <div class="table-card-label">Dirección</div>
+                            <div class="table-card-value">${gasto.direccion || ''}</div>
+                        </div>
+                        <div class="table-card-item">
+                            <div class="table-card-label">Valor</div>
+                            <div class="table-card-value"><strong>$${gasto.valor?.toLocaleString() || '0'}</strong></div>
+                        </div>
+                        <div class="table-card-item">
+                            <div class="table-card-label">Detalles</div>
+                            <div class="table-card-value">${gasto.detalles || ''}</div>
+                        </div>
+                        <div class="table-card-item">
+                            <div class="table-card-label">Fecha</div>
+                            <div class="table-card-value">${formatDate(gasto.fecha)} ${gasto.hora || ''}</div>
+                        </div>
+                    </div>
+                `;
+                cardsContainer.appendChild(card);
             });
 
-            document.querySelectorAll('.btn-delete-gasto').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    deleteGastoVehiculo(this.getAttribute('data-id'));
-                });
-            });
+            setupDeleteButtons();
         }
 
         function updateGastosVehiculoSummary(gastos) {
@@ -1520,6 +1948,12 @@
         async function handleGastoVehiculoSubmit(e) {
             e.preventDefault();
             
+            // Validar formulario
+            if (!validateForm('gasto-vehiculo-form')) {
+                showToast('Por favor, corrige los errores en el formulario', 'error');
+                return;
+            }
+            
             const gastoData = {
                 placa_vehiculo: document.getElementById('placa-gasto').value,
                 direccion: document.getElementById('direccion-gasto').value,
@@ -1531,6 +1965,8 @@
             };
 
             try {
+                showLoading();
+                
                 // Verificar nuevamente que el perfil existe antes de guardar
                 await ensureUserProfile();
 
@@ -1540,11 +1976,13 @@
                         .update(gastoData)
                         .eq('id', editingId);
                     if (error) throw error;
+                    showToast('Gasto de vehículo actualizado correctamente', 'success');
                 } else {
                     const { error } = await supabase
                         .from('gastos_vehiculo')
                         .insert([gastoData]);
                     if (error) throw error;
+                    showToast('Gasto de vehículo creado correctamente', 'success');
                 }
 
                 closeModal('gasto-vehiculo');
@@ -1553,10 +1991,12 @@
             } catch (error) {
                 console.error('Error saving gasto vehiculo:', error);
                 if (error.message.includes('foreign key constraint')) {
-                    alert('❌ Error: El perfil de usuario no existe. Por favor, contacta al administrador o verifica que las tablas estén creadas correctamente.');
+                    showToast('Error: El perfil de usuario no existe. Contacta al administrador.', 'error');
                 } else {
-                    alert('❌ Error al guardar el gasto de vehículo: ' + error.message);
+                    showToast('Error al guardar el gasto de vehículo: ' + error.message, 'error');
                 }
+            } finally {
+                hideLoading();
             }
         }
 
@@ -1582,26 +2022,36 @@
                 document.getElementById('gasto-vehiculo-modal').classList.add('active');
             } catch (error) {
                 console.error('Error loading gasto vehiculo:', error);
-                alert('❌ Error cargando el gasto de vehículo: ' + error.message);
+                showToast('Error cargando el gasto de vehículo: ' + error.message, 'error');
             }
         }
 
+        // ========== CORRECCIÓN PARA ELIMINACIÓN DE GASTOS VEHÍCULO ==========
         async function deleteGastoVehiculo(id) {
-            if (!confirm('¿Estás seguro de que quieres eliminar este gasto de vehículo?')) return;
+            showConfirmation(
+                'Eliminar Gasto de Vehículo',
+                '¿Estás seguro de que quieres eliminar este gasto de vehículo? Esta acción no se puede deshacer.',
+                async () => {
+                    try {
+                        showLoading();
+                        const { error } = await supabase
+                            .from('gastos_vehiculo')
+                            .delete()
+                            .eq('id', id);
 
-            try {
-                const { error } = await supabase
-                    .from('gastos_vehiculo')
-                    .delete()
-                    .eq('id', id);
-
-                if (error) throw error;
-                const gastos = await loadGastosVehiculo();
-                updateDashboardStats(await loadServicios(), await loadCombustible(), gastos, await loadOtros());
-            } catch (error) {
-                console.error('Error deleting gasto vehiculo:', error);
-                alert('❌ Error al eliminar el gasto de vehículo: ' + error.message);
-            }
+                        if (error) throw error;
+                        
+                        showToast('Gasto de vehículo eliminado correctamente', 'success');
+                        const gastos = await loadGastosVehiculo();
+                        updateDashboardStats(await loadServicios(), await loadCombustible(), gastos, await loadOtros());
+                    } catch (error) {
+                        console.error('Error deleting gasto vehiculo:', error);
+                        showToast('Error al eliminar el gasto de vehículo: ' + error.message, 'error');
+                    } finally {
+                        hideLoading();
+                    }
+                }
+            );
         }
 
         async function applyGastosFilter() {
@@ -1625,6 +2075,7 @@
                 updateGastosVehiculoSummary(data);
             } catch (error) {
                 console.error('Error filtering gastos:', error);
+                showToast('Error aplicando filtros: ' + error.message, 'error');
             }
         }
 
@@ -1635,24 +2086,43 @@
         }
 
         // ========== OTROS GASTOS ==========
-        async function loadOtros() {
+        async function loadOtros(page = 1, limit = 10) {
             const loading = document.getElementById('otros-loading');
             const table = document.getElementById('otros-table');
+            const cardsContainer = document.getElementById('otros-cards');
             
             loading.style.display = 'block';
             table.style.display = 'none';
+            cardsContainer.innerHTML = '';
 
             try {
+                // Calcular offset para paginación
+                const offset = (page - 1) * limit;
+                
+                // Obtener total de registros
+                const { count, error: countError } = await supabase
+                    .from('otros_gastos')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('user_id', currentUser.id);
+                
+                if (countError) throw countError;
+                
+                pagination.otros.total = count;
+                pagination.otros.page = page;
+                
+                // Obtener datos paginados
                 const { data, error } = await supabase
                     .from('otros_gastos')
                     .select('*')
                     .eq('user_id', currentUser.id)
-                    .order('fecha', { ascending: false });
+                    .order('fecha', { ascending: false })
+                    .range(offset, offset + limit - 1);
 
                 if (error) throw error;
 
                 displayOtros(data);
                 updateOtrosSummary(data);
+                updatePagination('otros');
                 return data;
             } catch (error) {
                 console.error('Error loading otros gastos:', error);
@@ -1666,13 +2136,16 @@
 
         function displayOtros(otros) {
             const tbody = document.querySelector('#otros-table tbody');
+            const cardsContainer = document.getElementById('otros-cards');
             tbody.innerHTML = '';
+            cardsContainer.innerHTML = '';
 
             if (otros.length === 0) {
                 showEmptyState('otros-table', 'No hay otros gastos registrados', 'fas fa-receipt');
                 return;
             }
 
+            // Mostrar tabla en desktop
             otros.forEach(otro => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -1692,17 +2165,41 @@
                 tbody.appendChild(row);
             });
 
-            document.querySelectorAll('.btn-edit-otro').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    editOtro(this.getAttribute('data-id'));
-                });
+            // Mostrar tarjetas en móviles
+            otros.forEach(otro => {
+                const card = document.createElement('div');
+                card.className = 'table-card';
+                card.innerHTML = `
+                    <div class="table-card-header">
+                        <div class="table-card-title">${otro.nombre_gasto || 'Sin nombre'}</div>
+                        <div class="table-card-actions">
+                            <button class="btn btn-warning btn-sm btn-edit-otro" data-id="${otro.id}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-danger btn-sm btn-delete-otro" data-id="${otro.id}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-card-body">
+                        <div class="table-card-item">
+                            <div class="table-card-label">Dirección</div>
+                            <div class="table-card-value">${otro.direccion || ''}</div>
+                        </div>
+                        <div class="table-card-item">
+                            <div class="table-card-label">Valor</div>
+                            <div class="table-card-value"><strong>$${otro.valor?.toLocaleString() || '0'}</strong></div>
+                        </div>
+                        <div class="table-card-item">
+                            <div class="table-card-label">Fecha</div>
+                            <div class="table-card-value">${formatDate(otro.fecha)} ${otro.hora || ''}</div>
+                        </div>
+                    </div>
+                `;
+                cardsContainer.appendChild(card);
             });
 
-            document.querySelectorAll('.btn-delete-otro').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    deleteOtro(this.getAttribute('data-id'));
-                });
-            });
+            setupDeleteButtons();
         }
 
         function updateOtrosSummary(otros) {
@@ -1718,6 +2215,12 @@
         async function handleOtroSubmit(e) {
             e.preventDefault();
             
+            // Validar formulario
+            if (!validateForm('otro-form')) {
+                showToast('Por favor, corrige los errores en el formulario', 'error');
+                return;
+            }
+            
             const otroData = {
                 nombre_gasto: document.getElementById('nombre-gasto').value,
                 direccion: document.getElementById('direccion-otro').value,
@@ -1728,6 +2231,8 @@
             };
 
             try {
+                showLoading();
+                
                 // Verificar nuevamente que el perfil existe antes de guardar
                 await ensureUserProfile();
 
@@ -1737,11 +2242,13 @@
                         .update(otroData)
                         .eq('id', editingId);
                     if (error) throw error;
+                    showToast('Otro gasto actualizado correctamente', 'success');
                 } else {
                     const { error } = await supabase
                         .from('otros_gastos')
                         .insert([otroData]);
                     if (error) throw error;
+                    showToast('Otro gasto creado correctamente', 'success');
                 }
 
                 closeModal('otro');
@@ -1750,10 +2257,12 @@
             } catch (error) {
                 console.error('Error saving otro gasto:', error);
                 if (error.message.includes('foreign key constraint')) {
-                    alert('❌ Error: El perfil de usuario no existe. Por favor, contacta al administrador o verifica que las tablas estén creadas correctamente.');
+                    showToast('Error: El perfil de usuario no existe. Contacta al administrador.', 'error');
                 } else {
-                    alert('❌ Error al guardar el otro gasto: ' + error.message);
+                    showToast('Error al guardar el otro gasto: ' + error.message, 'error');
                 }
+            } finally {
+                hideLoading();
             }
         }
 
@@ -1778,26 +2287,36 @@
                 document.getElementById('otro-modal').classList.add('active');
             } catch (error) {
                 console.error('Error loading otro gasto:', error);
-                alert('❌ Error cargando el otro gasto: ' + error.message);
+                showToast('Error cargando el otro gasto: ' + error.message, 'error');
             }
         }
 
+        // ========== CORRECCIÓN PARA ELIMINACIÓN DE OTROS GASTOS ==========
         async function deleteOtro(id) {
-            if (!confirm('¿Estás seguro de que quieres eliminar este otro gasto?')) return;
+            showConfirmation(
+                'Eliminar Otro Gasto',
+                '¿Estás seguro de que quieres eliminar este otro gasto? Esta acción no se puede deshacer.',
+                async () => {
+                    try {
+                        showLoading();
+                        const { error } = await supabase
+                            .from('otros_gastos')
+                            .delete()
+                            .eq('id', id);
 
-            try {
-                const { error } = await supabase
-                    .from('otros_gastos')
-                    .delete()
-                    .eq('id', id);
-
-                if (error) throw error;
-                const otros = await loadOtros();
-                updateDashboardStats(await loadServicios(), await loadCombustible(), await loadGastosVehiculo(), otros);
-            } catch (error) {
-                console.error('Error deleting otro gasto:', error);
-                alert('❌ Error al eliminar el otro gasto: ' + error.message);
-            }
+                        if (error) throw error;
+                        
+                        showToast('Otro gasto eliminado correctamente', 'success');
+                        const otros = await loadOtros();
+                        updateDashboardStats(await loadServicios(), await loadCombustible(), await loadGastosVehiculo(), otros);
+                    } catch (error) {
+                        console.error('Error deleting otro gasto:', error);
+                        showToast('Error al eliminar el otro gasto: ' + error.message, 'error');
+                    } finally {
+                        hideLoading();
+                    }
+                }
+            );
         }
 
         async function applyOtrosFilter() {
@@ -1821,6 +2340,7 @@
                 updateOtrosSummary(data);
             } catch (error) {
                 console.error('Error filtering otros:', error);
+                showToast('Error aplicando filtros: ' + error.message, 'error');
             }
         }
 
@@ -1835,22 +2355,116 @@
         // Función utilitaria para formatear fecha
         function formatDate(dateString) {
             if (!dateString) return '';
-            const date = new Date(dateString);
-            return date.toLocaleDateString('es-ES');
+            try {
+                const date = new Date(dateString);
+                if (isNaN(date.getTime())) return '';
+                return date.toLocaleDateString('es-ES');
+            } catch (error) {
+                console.error('Error formateando fecha:', error);
+                return '';
+            }
         }
 
         // Función para mostrar estado vacío
         function showEmptyState(tableId, message, icon = 'fas fa-inbox') {
             const tbody = document.querySelector(`#${tableId} tbody`);
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="7">
-                        <div class="empty-state">
-                            <i class="${icon}"></i>
-                            <h3>${message}</h3>
-                            <p>No se encontraron registros para mostrar</p>
-                        </div>
-                    </td>
-                </tr>
-            `;
+            if (tbody) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="9">
+                            <div class="empty-state">
+                                <i class="${icon}"></i>
+                                <h3>${message}</h3>
+                                <p>No se encontraron registros para mostrar</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }
+            
+            // También actualizar las tarjetas para móviles
+            const cardsContainer = document.getElementById(`${tableId.replace('-table', '')}-cards`);
+            if (cardsContainer) {
+                cardsContainer.innerHTML = `
+                    <div class="empty-state">
+                        <i class="${icon}"></i>
+                        <h3>${message}</h3>
+                        <p>No se encontraron registros para mostrar</p>
+                    </div>
+                `;
+            }
         }
+
+        // ========== CORRECCIÓN EN LOS EVENT LISTENERS DE LOS BOTONES ELIMINAR ==========
+        function setupDeleteButtons() {
+            // Servicios
+            document.querySelectorAll('.btn-delete-servicio').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    deleteServicio(id);
+                });
+            });
+
+            document.querySelectorAll('.btn-edit-servicio').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    editServicio(id);
+                });
+            });
+
+            // Combustible
+            document.querySelectorAll('.btn-delete-combustible').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    deleteCombustible(id);
+                });
+            });
+
+            document.querySelectorAll('.btn-edit-combustible').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    editCombustible(id);
+                });
+            });
+
+            // Gastos Vehículo
+            document.querySelectorAll('.btn-delete-gasto').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    deleteGastoVehiculo(id);
+                });
+            });
+
+            document.querySelectorAll('.btn-edit-gasto').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    editGastoVehiculo(id);
+                });
+            });
+
+            // Otros Gastos
+            document.querySelectorAll('.btn-delete-otro').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    deleteOtro(id);
+                });
+            });
+
+            document.querySelectorAll('.btn-edit-otro').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    editOtro(id);
+                });
+            });
+        }
+
+        // ========== HACER FUNCIONES DISPONIBLES GLOBALMENTE ==========
+        window.deleteServicio = deleteServicio;
+        window.deleteCombustible = deleteCombustible;
+        window.deleteGastoVehiculo = deleteGastoVehiculo;
+        window.deleteOtro = deleteOtro;
+        window.loadServicios = loadServicios;
+        window.loadCombustible = loadCombustible;
+        window.loadGastosVehiculo = loadGastosVehiculo;
+        window.loadOtros = loadOtros;
+ 

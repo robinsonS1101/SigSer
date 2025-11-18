@@ -7,8 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/styles.css">
-    
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <!-- Login Section -->
@@ -337,15 +336,15 @@
                         <table id="servicios-table" style="display: none;">
                             <thead>
                                 <tr>
-                                    <th>Cuenta</th>
-                                    <th>Orden Trabajo</th>
-                                    <th>Tipo Servicio</th>
-                                    <th>Cliente</th>
-                                    <th>Valor</th>
-                                    <th>Direccion</th>
-                                    <th>Detalles</th>
-                                    <th>Fecha</th>
-                                    <th>Acciones</th>
+                                    <th><i class="fas fa-building"></i> Cuenta</th>
+                                    <th><i class="fas fa-file-alt"></i> Orden Trabajo</th>
+                                    <th><i class="fas fa-tools"></i> Tipo Servicio</th>
+                                    <th><i class="fas fa-user"></i> Cliente</th>
+                                    <th><i class="fas fa-dollar-sign"></i> Valor</th>
+                                    <th><i class="fas fa-map-marker-alt"></i> Direccion</th>
+                                    <th><i class="fas fa-sticky-note"></i> Detalles</th>
+                                    <th><i class="fas fa-calendar"></i> Fecha</th>
+                                    <th><i class="fas fa-cogs"></i> Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -353,6 +352,14 @@
                             </tbody>
                         </table>
                     </div>
+                    
+                    <!-- Cards para móviles -->
+                    <div class="table-cards-container" id="servicios-cards">
+                        <!-- Las tarjetas se generarán dinámicamente -->
+                    </div>
+                    
+                    <!-- Paginación -->
+                    <div id="servicios-pagination" class="pagination"></div>
                 </section>
 
                 <!-- Combustible Section -->
@@ -417,12 +424,12 @@
                         <table id="combustible-table" style="display: none;">
                             <thead>
                                 <tr>
-                                    <th>Placa Vehículo</th>
-                                    <th>Estación Servicio</th>
-                                    <th>Dirección</th>
-                                    <th>Valor</th>
-                                    <th>Fecha</th>
-                                    <th>Acciones</th>
+                                    <th><i class="fas fa-car"></i> Placa Vehículo</th>
+                                    <th><i class="fas fa-gas-pump"></i> Estación Servicio</th>
+                                    <th><i class="fas fa-map-marker-alt"></i> Dirección</th>
+                                    <th><i class="fas fa-dollar-sign"></i> Valor</th>
+                                    <th><i class="fas fa-calendar"></i> Fecha</th>
+                                    <th><i class="fas fa-cogs"></i> Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -430,6 +437,14 @@
                             </tbody>
                         </table>
                     </div>
+                    
+                    <!-- Cards para móviles -->
+                    <div class="table-cards-container" id="combustible-cards">
+                        <!-- Las tarjetas se generarán dinámicamente -->
+                    </div>
+                    
+                    <!-- Paginación -->
+                    <div id="combustible-pagination" class="pagination"></div>
                 </section>
 
                 <!-- Gastos Vehículo Section -->
@@ -490,11 +505,11 @@
                         <table id="gastos-table" style="display: none;">
                             <thead>
                                 <tr>
-                                    <th>Placa Vehículo</th>
-                                    <th>Dirección</th>
-                                    <th>Valor</th>
-                                    <th>Fecha</th>
-                                    <th>Acciones</th>
+                                    <th><i class="fas fa-car"></i> Placa Vehículo</th>
+                                    <th><i class="fas fa-map-marker-alt"></i> Dirección</th>
+                                    <th><i class="fas fa-dollar-sign"></i> Valor</th>
+                                    <th><i class="fas fa-calendar"></i> Fecha</th>
+                                    <th><i class="fas fa-cogs"></i> Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -502,6 +517,14 @@
                             </tbody>
                         </table>
                     </div>
+                    
+                    <!-- Cards para móviles -->
+                    <div class="table-cards-container" id="gastos-cards">
+                        <!-- Las tarjetas se generarán dinámicamente -->
+                    </div>
+                    
+                    <!-- Paginación -->
+                    <div id="gastos-pagination" class="pagination"></div>
                 </section>
 
                 <!-- Otros Section -->
@@ -562,11 +585,11 @@
                         <table id="otros-table" style="display: none;">
                             <thead>
                                 <tr>
-                                    <th>Nombre Gasto</th>
-                                    <th>Dirección</th>
-                                    <th>Valor</th>
-                                    <th>Fecha</th>
-                                    <th>Acciones</th>
+                                    <th><i class="fas fa-tag"></i> Nombre Gasto</th>
+                                    <th><i class="fas fa-map-marker-alt"></i> Dirección</th>
+                                    <th><i class="fas fa-dollar-sign"></i> Valor</th>
+                                    <th><i class="fas fa-calendar"></i> Fecha</th>
+                                    <th><i class="fas fa-cogs"></i> Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -574,6 +597,14 @@
                             </tbody>
                         </table>
                     </div>
+                    
+                    <!-- Cards para móviles -->
+                    <div class="table-cards-container" id="otros-cards">
+                        <!-- Las tarjetas se generarán dinámicamente -->
+                    </div>
+                    
+                    <!-- Paginación -->
+                    <div id="otros-pagination" class="pagination"></div>
                 </section>
 
                 <!-- Sección de Estadísticas -->
@@ -893,7 +924,23 @@
         <i class="fas fa-plus"></i>
     </div>
 
-    <script src="js/script.js"></script>
-
+    <!-- Nuevos elementos para mejoras -->
+    <div id="toast-container"></div>
+    
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
+    
+    <div id="confirmation-modal" class="confirmation-modal">
+        <div class="confirmation-content">
+            <h3 id="confirmation-title">Confirmar acción</h3>
+            <p id="confirmation-message">¿Estás seguro de que quieres realizar esta acción?</p>
+            <div class="confirmation-buttons">
+                <button id="confirmation-cancel" class="btn btn-outline">Cancelar</button>
+                <button id="confirmation-confirm" class="btn btn-danger">Confirmar</button>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
 </body>
 </html>
